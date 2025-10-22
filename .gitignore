@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files
+data/raw/*
+data/processed/*
+data/gee/raw/*
+data/gee/intermediate/*
+data/gee/processed/*
+data/gee/aoi/*
+*.tif
+*.geojson
+!.gitkeep
+!data/gee/**/.gitkeep
+
+# Runtime artefacts
+logs/gee/*
+tmp/gee/*
+assets/gee/*
+!logs/gee/.gitkeep
+!tmp/gee/.gitkeep
+!assets/gee/.gitkeep
+
+# Secrets
+config/gee/auth/*
+!config/gee/auth/.gitkeep
+
+# Earth Engine credentials
+.config/
+credentials.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
