@@ -1,22 +1,27 @@
+ee_project: mclean-microclimate
 run_id: mclean_l0_2025Q3
 aoi_path: config/aoi.geojson
+
 dates:
   start: "2024-04-01"
   end:   "2024-10-31"
+
 composite_days: 14
 s2_cloud_prob_thresh: 40
 res_m: 10
+
 export:
-  to: "ASSET"          # or "CLOUD_STORAGE" / "DRIVE"
-  asset_prefix: "users/<your_ee_username>/mclean_l0/"
+  to: "CLOUD_STORAGE"
+  gcs_bucket: "mclean-gee-export"
   crs: "EPSG:3857"
-  cog: true            # (COG when using GCS; Assets are internal)
+  cog: true
+
 features:
-  s2_raw:   [B5,B6,B7,B8,B8A,B11,B12]
-  indices:  [ndvi,ndre,ndmi,ndwi,evi,nirv]
-  textures: [ndvi_glcm_mean,ndvi_glcm_var]
-  s1:       [vv,vh,vh_vv,delta_vv_30d]
-  thermal:  [lst_med,lst_anom]
-  meteo:    [chirps_7d,chirps_14d,chirps_30d,eto_7d,eto_14d,vpd_mean]
-  terrain:  [slope,aspect_sin,aspect_cos,twi,hli]
-  canopy:   [cover_pct,canopy_type]
+  s2_raw:   [B5, B6, B7, B8, B8A, B11, B12]
+  indices:  [ndvi, ndre, ndmi, ndwi, evi, nirv]
+  textures: [ndvi_glcm_mean, ndvi_glcm_var]
+  s1:       [vv, vh, vh_vv, delta_vv_30d]
+  thermal:  [lst_med, lst_anom]
+  meteo:    [chirps_7d, chirps_14d, chirps_30d, eto_7d, eto_14d, vpd_mean]
+  terrain:  [slope, aspect_sin, aspect_cos, twi, hli]
+  canopy:   [cover_pct, canopy_type]

@@ -1,9 +1,10 @@
-\"\"\"Batch NDVI export pipeline using Google Earth Engine.\"\"\"
+"""Batch NDVI export pipeline using Google Earth Engine."""
 
 from __future__ import annotations
 
 import datetime as _dt
-from typing import Iterable, List
+import os
+from typing import List, Optional
 
 import ee  # type: ignore
 
@@ -14,33 +15,37 @@ from ..utils.dates import daterange
 
 
 def _format_for_filename(date_value: _dt.date) -> str:
-    return date_value.strftime(\"%Y%m%d\")
+    return date_value.strftime("%Y%m%d")
 
 
-def _ensure_initialized() -> None:
+def _ensure_initialized(project: Optional[str] = None) -> None:
     try:
-        ee.Image(\"COPERNICUS/S2_SR_HARMONIZED\")
+        ee.Image("COPERNICUS/S2_SR_HARMONIZED")
     except Exception:
-        ee.Initialize()
+        if project:
+            ee.Initialize(project=project)
+        else:
+            ee.Initialize()
 
 
-def run(config_path: str = \"config/run.yaml\") -> List[ee.batch.Task]:
-    \"\"\"Run the Sentinel-2 NDVI export pipeline using ``config_path``.\"\"\"
-    _ensure_initialized()
-
+def run(config_path: str = "config/run.yaml") -> List[ee.batch.Task]:
+    """Run the Sentinel-2 NDVI export pipeline using ``config_path``."""
     cfg = read_yaml(config_path)
-    aoi = load_aoi_geometry(cfg[\"aoi_path\"])
-    start = _dt.date.fromisoformat(cfg[\"dates\"][\"start\"])
-    end = _dt.date.fromisoformat(cfg[\"dates\"][\"end\"])
-    step_days = int(cfg.get(\"composite_days\", 14))
-    cloud_thresh = int(cfg.get(\"s2_cloud_prob_thresh\", 40))
-    run_id = cfg[\"run_id\"]
+    project = cfg.get("ee_project") or os.environ.get("EE_PROJECT")
+    _ensure_initialized(project=project)
 
-    export_cfg = cfg.get(\"export\", {})
-    destination = export_cfg.get(\"to\", \"ASSET\").upper()
-    scale = int(export_cfg.get(\"scale\", cfg.get(\"res_m\", 10)))
-    crs = export_cfg.get(\"crs\", \"EPSG:4326\")
-    cog = bool(export_cfg.get(\"cog\", True))
+    aoi = load_aoi_geometry(cfg["aoi_path"])
+    start = _dt.date.fromisoformat(cfg["dates"]["start"])
+    end = _dt.date.fromisoformat(cfg["dates"]["end"])
+    step_days = int(cfg.get("composite_days", 14))
+    cloud_thresh = int(cfg.get("s2_cloud_prob_thresh", 40))
+    run_id = cfg["run_id"]
+
+    export_cfg = cfg.get("export", {})
+    destination = export_cfg.get("to", "ASSET").upper()
+    scale = int(export_cfg.get("scale", cfg.get("res_m", 10)))
+    crs = export_cfg.get("crs", "EPSG:4326")
+    cog = bool(export_cfg.get("cog", True))
 
     tasks: List[ee.batch.Task] = []
 
@@ -55,10 +60,10 @@ def run(config_path: str = \"config/run.yaml\") -> List[ee.batch.Task]:
         start_token = _format_for_filename(start_date)
         end_token = _format_for_filename(end_date)
 
-        if destination == \"CLOUD_STORAGE\":
-            bucket = export_cfg.get(\"gcs_bucket\")
+        if destination == "CLOUD_STORAGE":
+            bucket = export_cfg.get("gcs_bucket")
             if not bucket:
-                raise ValueError(\"'export.gcs_bucket' must be set for Cloud Storage exports.\")
+                raise ValueError("'export.gcs_bucket' must be set for Cloud Storage exports.")
             task = export_ndvi_to_cloud_storage(
                 ndvi,
                 aoi,
@@ -70,10 +75,10 @@ def run(config_path: str = \"config/run.yaml\") -> List[ee.batch.Task]:
                 crs=crs,
                 cog=cog,
             )
-        elif destination == \"ASSET\":
-            asset_prefix = export_cfg.get(\"asset_prefix\")
+        elif destination == "ASSET":
+            asset_prefix = export_cfg.get("asset_prefix")
             if not asset_prefix:
-                raise ValueError(\"'export.asset_prefix' must be set for Asset exports.\")
+                raise ValueError("'export.asset_prefix' must be set for Asset exports.")
             task = export_ndvi_to_asset(
                 ndvi,
                 aoi,
@@ -85,13 +90,13 @@ def run(config_path: str = \"config/run.yaml\") -> List[ee.batch.Task]:
                 crs=crs,
             )
         else:
-            raise NotImplementedError(f\"Export destination '{destination}' is not supported yet.\")
+            raise NotImplementedError(f"Export destination '{destination}' is not supported yet.")
 
         tasks.append(task)
-        print(f\"Started export task: {task.id}\")
+        print(f"Started export task: {task.id}")
 
     return tasks
 
 
-if __name__ == \"__main__\":  # pragma: no cover - CLI entry point
+if __name__ == "__main__":  # pragma: no cover - CLI entry point
     run()
