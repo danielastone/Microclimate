@@ -71,3 +71,12 @@ Until those steps are completed, outputs should be described as vegetation-index
 Large rasters, downloaded exports, local AOIs, runtime logs, virtual environments, and credentials are excluded from Git. Store reproducible source code, small configuration files, schemas, manifests, and derived summary tables in the repository. Store large or sensitive artifacts in an appropriate external data store and record their provenance.
 
 Never commit Earth Engine credentials, service-account keys, Cloud Storage credentials, or local Python environments.
+
+## Offline development checks
+
+Python 3.11–3.12 is covered by CI. Install declared dependencies with
+`python -m pip install -r requirements.txt`, then run
+`PYTHONPATH=src python -m unittest discover -s tests -v`. These checks import
+the pipeline and inspect the draft configuration without authentication or exports.
+They do not validate satellite-derived dryness. Real acquisition still requires
+a verified Earth Engine project, an actual AOI file, and authorized export storage.
